@@ -6,11 +6,13 @@
     
     type(TgasEntry), allocatable, dimension(:) :: GaiaData
     character(80) :: readStr
-    integer :: line_num, i, j
+    integer :: line_num, i, j, k
     integer(16), allocatable, dimension(:) :: comp_count
     character(9) :: file_num = ""
     character(26) :: csv_file_name = ""
     real(8) :: dist, maxdist
+    real(8), dimension(400) :: med_err 
+    integer, dimension(400) :: n
 
 
     open(20,file='testout.csv')
@@ -29,6 +31,9 @@
     allocate(comp_count(0:15))
 
     comp_count = 0
+
+    med_err = 0
+    n = 0
 
     do j = 0, 15
 
@@ -53,11 +58,15 @@
       maxdist = 0
 
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0))then!.and.(GaiaData(i)%parallax_error/GaiaData(i)%parallax .le. 1)) then
+        if((GaiaData(i)%parallax .ge. 0).and.((aint(1000.0/GaiaData(i)%parallax/100)+1).le.400)) then
           dist = 1000.0/GaiaData(i)%parallax
           maxdist = max(dist,maxdist)
+          k = int(aint(dist/100))+1
+          !print*, k
+          med_err(k) = (med_err(k) * n(k) + GaiaData(i)%parallax_error/GaiaData(i)%parallax)/(n(k)+1)
+          n(k) = n(k) + 1
           !write(20,*) GaiaData(i)%parallax, GaiaData(i)%parallax_error/GaiaData(i)%parallax
-          write(20,*) log10(dist), GaiaData(i)%parallax_error*dist/1000.0
+          !write(20,*) log10(dist), GaiaData(i)%parallax_error*dist/1000.0
           comp_count(j) = comp_count(j) + 1
         else
           !print*,GaiaData(i)
@@ -72,6 +81,10 @@
     enddo
 
     print*, 'total compatible entries', sum(comp_count)
+
+    do i = 1, 400
+      write(20,*) i*100, med_err(i)
+    enddo
 
     close(20)
 
