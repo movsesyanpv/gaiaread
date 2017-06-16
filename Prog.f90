@@ -28,7 +28,7 @@
     integer, allocatable, dimension(:) :: ipixcolor, nhealp
     real(8), allocatable, dimension(:) :: meddist,nhealpr
     integer :: ipix
-    integer :: nside = 32
+    integer :: nside = 10
     character(8) :: legnum = ""
     
     TYPE (xycoord) pos
@@ -54,7 +54,7 @@
     !CALL MoveTo_W(1.0*wc%numxpixels+0.05, 1.0*wc%numypixels+0.1, pos)
     CALL MoveTo(wc%numxpixels, wc%numypixels, pos)
     
-    status = setbkcolorrgb(#ffffff)
+    status = setbkcolorrgb(#000000)
     CALL CLEARSCREEN ($GCLEARSCREEN)
     
     j = initializefonts()
@@ -75,7 +75,8 @@
     ,scan_direction_mean_k3,scan_direction_mean_k4,phot_g_n_obs,phot_g_mean_flux,phot_g_mean_flux_error&
     ,phot_g_mean_mag,phot_variable_flag,l,b,ecl_lon,ecl_lat"
     
-    allocate(comp_count(0:15), medall(0:12*nside**2-1,9),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,9) ,nhealp(0:12*nside**2-1),nhealpr(0:12*nside**2),a(24*nside**2,3),ym(24*nside**2),w(24*nside**2),v(3),dv(3),r(3,3))
+    allocate(comp_count(0:15), medall(0:12*nside**2-1,9),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,9) ,nhealp(0:12*nside**2-1))
+    allocate(nhealpr(0:12*nside**2),a(24*nside**2,3),ym(24*nside**2),w(24*nside**2),v(3),dv(3),r(3,3))
     
     comp_count = 0
     
@@ -122,12 +123,12 @@
       medall%parallax = 0
       nall = 0
       
-      status = setcolorrgb(#000000)
+      status = setcolorrgb(#ffffff-getbkcolorrgb())
       
       !$omp parallel private(l,b,x,y)
       !$omp do
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0).and.((aint(100.0/GaiaData(i)%parallax/100)+1).le. 40))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax).le. 0.9))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
             call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
             l = rad(l)
@@ -140,10 +141,12 @@
           maxdist = max(dist,maxdist)
           k = int(aint(dist/100))+1
           !print*, k
-          !!medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
-          !!medall(ipix,k)%pmdec = (medall(ipix,k)%pmdec*nall(ipix,k)+GaiaData(i)%pmdec)/(nall(ipix,k)+1)
-          !!medall(ipix,k)%parallax = (medall(ipix,k)%parallax*nall(ipix,k)+GaiaData(i)%parallax)/(nall(ipix,k)+1)
-          !!nall(ipix,k) = nall(ipix,k) + 1
+          medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
+          medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
+          medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
+          medall(ipix,k)%pmdec = (medall(ipix,k)%pmdec*nall(ipix,k)+GaiaData(i)%pmdec)/(nall(ipix,k)+1)
+          medall(ipix,k)%parallax = (medall(ipix,k)%parallax*nall(ipix,k)+GaiaData(i)%parallax)/(nall(ipix,k)+1)
+          nall(ipix,k) = nall(ipix,k) + 1
           med_err(k) = (med_err(k) * n(k) + GaiaData(i)%parallax_error/GaiaData(i)%parallax)/(n(k)+1)
           n(k) = n(k) + 1
           !write(20,*) GaiaData(i)%parallax, GaiaData(i)%parallax_error/GaiaData(i)%parallax
@@ -163,19 +166,22 @@
     !
     enddo
     
-    !!do i = 1, 12*nside**2
-    !!    a(i,1) = kmul_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
-    !!    a(i,2) = kmul_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-    !!    a(i,3) = kmul_base(3,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-    !!    ym(i) = medall(i,1)%pmra * cos(medall(i,1)%b)                                     !перевести широту в радианы
-    !!    a(i+12*nside**2,1) = kmub_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-    !!    a(i+12*nside**2,2) = kmub_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-    !!    a(i+12*nside**2,3) = kmub_base(3,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-    !!    ym(i) = medall(i,1)%pmdec
-    !!enddo
+    !medall%ra = 4.0*atan(1.0)*medall%ra/180.0
+    !medall%dec = 4.0*atan(1.0)*medall%dec/180.0
+    
+    do i = 0, 12*nside**2-1
+        a(i+1,1) = kmul_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
+        a(i+1,2) = kmul_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        a(i+1,3) = 0!kmul_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        ym(i+1) = medall(i,1)%pmra/1000.0/3600.0 * cosd(medall(i,1)%dec)
+        a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        ym(i+1) = medall(i,1)%pmdec
+    enddo
     
     
-    !!call LSQM(a,ym,w,v,dv,s,r,cond) !Что такое корреляционная матрица здесь? Какое число обусловленности брать?
+    !call LSQM(a,ym,w,v,dv,s,r,cond)
     
     !print*, 'total compatible entries', sum(comp_count)
     
@@ -184,6 +190,18 @@
     enddo
     
     close(20)
+    
+    open(20, file='D:\gaiaread\matrix.dat')
+    do i = 1, 2*12*nside**2
+        write(20,*) a(i,1),"v1+", a(i,2),"v2+", a(i,3),"v3=", ym(i)
+    enddo
+    close(20)
+    
+    open(30,file='D:\gaiaread\vsun.dat')
+    do i = 1, 3
+        write(30,*) v(i), dv(i)
+    enddo
+    close(30)
     
     !open(20,file='D:\gaiaread\meddist.dat')
     !do i = 0, 12*nside**2
@@ -203,49 +221,49 @@
     
     call clearscreen($GCLEARSCREEN)
     
-    open(20,file='D:\gaiaread\meanpmra.dat')
+    open(40,file='D:\gaiaread\meanpmra.dat')
     do i = 0, 12*nside**2-1
-        write(20,'(9I)') nhealp(i)!medall(i,:)%pmra!,medall(1,1)%pmdec,sum(nall)
+        write(40,'(9I)') nhealp(i)!medall(i,:)%pmra!,medall(1,1)%pmdec,sum(nall)
+    enddo
+    
+    close(40)
+    
+    open(20,file='D:\gaiaread\nall.dat')
+    write(20,*) "#", sum(nall), sum(nhealp), maxloc(nall), maxval(nall)
+    do i = 0, 12*nside**2-1
+        write(20,'(9I)') nall(i,:), nhealp(i)
     enddo
     
     close(20)
-    !
-    !open(20,file='D:\gaiaread\nall.dat')
-    !write(20,*) "#", sum(nall), maxloc(nall), maxval(nall)
-    !do i = 0, 12*nside**2
-    !    write(20,'(9I)') nall(i,:)
-    !enddo
-    
-    !close(20)
     valueexp = 1
 
-!Построение легенды
-    
-    status = setbkcolorrgb(#ffffff)
-    CALL CLEARSCREEN ($GCLEARSCREEN)
-    
-    call DrawLegend("mean distance in kpc            ",meddist, pos)
-    
-!healpix
-    allocate(ipixcolor(0:12*nside**2))
-    
-    ipixcolor = GetColorGradVect(meddist/maxval(meddist),valueexp)
-    
-    call DrawHealpix(ipixcolor,nside)
-    
-    k = SAVEIMAGE('D:\gaiaread\healpdistmap.png',0,0, wc%numxpixels,wc%numypixels)
-    
-    call clearscreen($GCLEARSCREEN)
-    
-    valueexp = 1
-    nhealpr = 1.0 * nhealp
-    ipixcolor = GetColorGradVect(nhealpr/maxval(nhealpr),valueexp)
-    
-    call drawlegend("object density, thousands       ",nhealpr,pos)
-    
-    call DrawHealpix(ipixcolor,nside)
-    
-    k = SAVEIMAGE('D:\gaiaread\healpdens.png',0,0, wc%numxpixels,wc%numypixels)
+!!!Построение легенды
+!!    
+!!    status = setbkcolorrgb(#ffffff)
+!!    CALL CLEARSCREEN ($GCLEARSCREEN)
+!!    
+!!    call DrawLegend("mean distance in kpc            ",meddist, pos)
+!!    
+!!!healpix
+!!    allocate(ipixcolor(0:12*nside**2))
+!!    
+!!    ipixcolor = GetColorGradVect(meddist/maxval(meddist),valueexp)
+!!    
+!!    call DrawHealpix(ipixcolor,nside)
+!!    
+!!    k = SAVEIMAGE('D:\gaiaread\healpdistmap.png',0,0, wc%numxpixels,wc%numypixels)
+!!    
+!!    call clearscreen($GCLEARSCREEN)
+!!    
+!!    valueexp = 1
+!!    nhealpr = 1.0 * nhealp
+!!    ipixcolor = GetColorGradVect(nhealpr/maxval(nhealpr),valueexp)
+!!    
+!!    call drawlegend("object density, thousands       ",nhealpr,pos)
+!!    
+!!    call DrawHealpix(ipixcolor,nside)
+!!    
+!!    k = SAVEIMAGE('D:\gaiaread\healpdens.png',0,0, wc%numxpixels,wc%numypixels)
     
     deallocate(ipixcolor,medall,nall,a,ym,w,v,dv,r,meddist)
     
