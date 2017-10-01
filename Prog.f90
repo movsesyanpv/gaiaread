@@ -125,10 +125,10 @@
       
       status = setcolorrgb(#ffffff-getbkcolorrgb())
       
-      !$omp parallel private(l,b,x,y)
-      !$omp do
+      !!$omp parallel private(l,b,x,y)
+      !!$omp do
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax).le. 0.9))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.9))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
             call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
             l = rad(l)
@@ -137,16 +137,21 @@
             status = rectangle($GFILLINTERIOR,x,y,x,y)
             call ang2pix_ring(nside, l, b, ipix)
             meddist(ipix) = (meddist(ipix) * nhealp(ipix) + dist)/(nhealp(ipix)+1)
-            nhealp(ipix) = nhealp(ipix) + 1
           maxdist = max(dist,maxdist)
           k = int(aint(dist/100))+1
           !print*, k
-          medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
-          medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
-          medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
-          medall(ipix,k)%pmdec = (medall(ipix,k)%pmdec*nall(ipix,k)+GaiaData(i)%pmdec)/(nall(ipix,k)+1)
-          medall(ipix,k)%parallax = (medall(ipix,k)%parallax*nall(ipix,k)+GaiaData(i)%parallax)/(nall(ipix,k)+1)
-          nall(ipix,k) = nall(ipix,k) + 1
+          medall(ipix,1)%ra = (medall(ipix,1)%ra*nhealp(ipix)+GaiaData(i)%ra)/(nhealp(ipix)+1)
+          medall(ipix,1)%dec = (medall(ipix,1)%dec*nhealp(ipix)+GaiaData(i)%dec)/(nhealp(ipix)+1)
+          medall(ipix,1)%pmra = (medall(ipix,1)%pmra*nhealp(ipix)+GaiaData(i)%pmra)/(nhealp(ipix)+1)
+          medall(ipix,1)%pmdec = (medall(ipix,1)%pmdec*nhealp(ipix)+GaiaData(i)%pmdec)/(nhealp(ipix)+1)
+          medall(ipix,1)%parallax = (medall(ipix,1)%parallax*nhealp(ipix)+GaiaData(i)%parallax)/(nhealp(ipix)+1)
+          nhealp(ipix) = nhealp(ipix) + 1
+          !medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
+          !medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
+          !medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
+          !medall(ipix,k)%pmdec = (medall(ipix,k)%pmdec*nall(ipix,k)+GaiaData(i)%pmdec)/(nall(ipix,k)+1)
+          !medall(ipix,k)%parallax = (medall(ipix,k)%parallax*nall(ipix,k)+GaiaData(i)%parallax)/(nall(ipix,k)+1)
+          !nall(ipix,k) = nall(ipix,k) + 1
           med_err(k) = (med_err(k) * n(k) + GaiaData(i)%parallax_error/GaiaData(i)%parallax)/(n(k)+1)
           n(k) = n(k) + 1
           !write(20,*) GaiaData(i)%parallax, GaiaData(i)%parallax_error/GaiaData(i)%parallax
@@ -156,8 +161,8 @@
         !  !print*,GaiaData(i)
         endif
       enddo
-      !$omp end do
-      !$omp end parallel
+      !!$omp end do
+      !!$omp end parallel
     
       deallocate(GaiaData)
     !  
@@ -177,13 +182,17 @@
         a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
         a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
         a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1) = medall(i,1)%pmdec
+        ym(i+1) = medall(i,1)%pmdec/1000.0/3600.0
     enddo
     
     
-    !call LSQM(a,ym,w,v,dv,s,r,cond)
+    call LSQM(a,ym,w,v,dv,s,r,cond)
     
-    !print*, 'total compatible entries', sum(comp_count)
+    print*, 'total compatible entries', sum(comp_count)
+    do i = 1, 3
+        print*, v(i), dv(i)
+    enddo
+    read(*,*)
     
     do i = 1, 400
       write(20,*) i*100, med_err(i), n(i)
@@ -231,7 +240,7 @@
     open(20,file='D:\gaiaread\nall.dat')
     write(20,*) "#", sum(nall), sum(nhealp), maxloc(nall), maxval(nall)
     do i = 0, 12*nside**2-1
-        write(20,'(9I)') nall(i,:), nhealp(i)
+        write(20,'(10I)') nall(i,:), nhealp(i)
     enddo
     
     close(20)
@@ -265,7 +274,8 @@
 !!    
 !!    k = SAVEIMAGE('D:\gaiaread\healpdens.png',0,0, wc%numxpixels,wc%numypixels)
     
-    deallocate(ipixcolor,medall,nall,a,ym,w,v,dv,r,meddist)
+    !deallocate(ipixcolor)
+    deallocate(medall,nall,a,ym,w,v,dv,r,meddist)
     
     contains
 
