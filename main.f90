@@ -1,21 +1,19 @@
-    program GaiaRead
-
     use CustomDataTypes
-    use Projection
+    !use Projection
     use GALACTIC
     use HealPix
-    use ColorPalette
+    !use ColorPalette
     use LSQ
     use OGOROD
     
     implicit none
     
     type(TgasEntry), allocatable, dimension(:) :: GaiaData
-    type(TgasEntry), allocatable, dimension(:,:) :: medall
+    type(MedTable), allocatable, dimension(:,:) :: medall
     real(8), allocatable, dimension(:,:) :: a,r
     real(8), allocatable, dimension(:) :: ym,w,dv,v
     integer, allocatable, dimension(:,:) :: nall
-    character(80) :: readStr
+    character(766) :: readStr
     integer :: line_num, i, j, k
     integer, allocatable, dimension(:) :: comp_count
     character(9) :: file_num = ""
@@ -31,36 +29,7 @@
     integer :: nside = 10
     character(8) :: legnum = ""
     
-    TYPE (xycoord) pos
-    TYPE (qwinfo)  winfo
-    LOGICAL(4) status
-    TYPE (windowconfig) wc
-    
     real(8) :: x,y,l,b
-    
-    winfo%type = QWIN$SET
-    winfo%x = 200
-    winfo%Y = 200    ! y coordinate for upper left
-    winfo%H = 1280    ! window height
-    winfo%W = 720    ! window width
-    
-    !k = SETWSIZEQQ (QWIN$FRAMEWINDOW, winfo)
-    
-    wc%numxpixels = 1920
-    wc%numypixels = 1080
-    status = setWINDOWCONFIG(wc)
-    IF (.NOT. status) status = SETWINDOWCONFIG(wc)
-    status = setwindow(.true.,0.0,0.0,1.0*wc%numxpixels,1.0*wc%numypixels)
-    !CALL MoveTo_W(1.0*wc%numxpixels+0.05, 1.0*wc%numypixels+0.1, pos)
-    CALL MoveTo(wc%numxpixels, wc%numypixels, pos)
-    
-    status = setbkcolorrgb(#000000)
-    CALL CLEARSCREEN ($GCLEARSCREEN)
-    
-    j = initializefonts()
-    i = setfont('t''Arial''h20w15')
-    
-    !call AitoffGrid(10,.true.)       !строим сетку
     
     open(20,file='D:\gaiaread\testout.csv')
     write(20,*)"#solution_id,source_id,random_index,ref_epoch,ra,ra_error,dec,dec_error&
@@ -85,21 +54,7 @@
     nhealp = 0
     meddist = 0
     
-    !status = setcolorrgb(#ffFF00)
-    !x = 13.158333
-    !y = -72.8
-    !call Galaxy(x,y,l,b)
-    !l = l-180
-    !call Aitoff(l,b,x,y)
-    !print*, l,b
-    !print*, x,y
-    !status = rectangle($GFILLINTERIOR,x,y,x+100,y+100)
-    !stop
-          medall%pmra = 0
-      medall%pmdec = 0
-      medall%parallax = 0
-    
-    do j = 0, 15
+     do j = 0, 15
     
       line_num = 0
     
@@ -121,34 +76,29 @@
     
       maxdist = 0
       
-      !medall%pmra = 0
-      !medall%pmdec = 0
-      !medall%parallax = 0
       nall = 0
-      
-      status = setcolorrgb(#ffffff-getbkcolorrgb())
       
       !!$omp parallel private(l,b,x,y)
       !!$omp do
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.9))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.1))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
-            call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
-            l = rad(l)
-            b = rad(b)
-            call Aitoff(l,b,x,y)
-            status = rectangle($GFILLINTERIOR,x,y,x,y)
+            !call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
+            l = gaiadata(i)%ra/180*4*atan(1.0)
+            b = gaiadata(i)%dec/180*4*atan(1.0)
             call ang2pix_ring(nside, l, b, ipix)
             meddist(ipix) = (meddist(ipix) * nhealp(ipix) + dist)/(nhealp(ipix)+1)
           maxdist = max(dist,maxdist)
           k = int(aint(dist/100))+1
           !print*, k
-          medall(ipix,1)%ra = (medall(ipix,1)%ra*nhealp(ipix)+GaiaData(i)%ra)/(nhealp(ipix)+1)
-          medall(ipix,1)%dec = (medall(ipix,1)%dec*nhealp(ipix)+GaiaData(i)%dec)/(nhealp(ipix)+1)
-          medall(ipix,1)%pmra = (medall(ipix,1)%pmra*nhealp(ipix)+GaiaData(i)%pmra)/(nhealp(ipix)+1)
-          medall(ipix,1)%pmdec = (medall(ipix,1)%pmdec*nhealp(ipix)+GaiaData(i)%pmdec)/(nhealp(ipix)+1)
+          medall(ipix,1)%ihealp = ipix
+          call pix2ang_ring(nside, ipix, medall(ipix,1)%lcen, medall(ipix,1)%bcen)
+          medall(ipix,1)%l = (medall(ipix,1)%l*nhealp(ipix)+GaiaData(i)%ra)/(nhealp(ipix)+1)
+          medall(ipix,1)%b = (medall(ipix,1)%b*nhealp(ipix)+GaiaData(i)%dec)/(nhealp(ipix)+1)
+          medall(ipix,1)%pml = (medall(ipix,1)%pml*nhealp(ipix)+GaiaData(i)%pmra)/(nhealp(ipix)+1)
+          medall(ipix,1)%pmb = (medall(ipix,1)%pmb*nhealp(ipix)+GaiaData(i)%pmdec)/(nhealp(ipix)+1)
           medall(ipix,1)%parallax = (medall(ipix,1)%parallax*nhealp(ipix)+GaiaData(i)%parallax)/(nhealp(ipix)+1)
-          nhealp(ipix) = nhealp(ipix) + 1
+          medall(ipix,1)%nhealp = medall(ipix,1)%nhealp + 1
           !medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
           !medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
           !medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
@@ -169,25 +119,37 @@
     
       deallocate(GaiaData)
     !  
-    !  !print*, csv_file_name, ' contains', comp_count(j), ' compatible entries, max distance is', maxdist, 'pc'
+      print*, trim(csv_file_name), ' contains', comp_count(j), ' compatible entries, max distance is', maxdist, 'pc'
     !  print*, 'max distance in ', trim(csv_file_name), ' is', maxdist, 'pc'
     !
     enddo
     
-    !medall%ra = 4.0*atan(1.0)*medall%ra/180.0
-    !medall%dec = 4.0*atan(1.0)*medall%dec/180.0
+    open(30,file="D:\gaiaread\out.csv",CARRIAGECONTROL='NONE',ENCODING='UTF-8')
+    write(30,*) "ihealp,lcen,bcen,ra,dec,pmra,pmdec,parallax,nhealp",new_line(" ")
+    do i = 0,12*nside**2-1
+        write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen*180/4.0/atan(1.0),",",medall(i,1)%bcen*180/4.0/atan(1.0),",",medall(i,1)%l,",",medall(i,1)%b,",",medall(i,1)%pml,",",medall(i,1)%pmb,",",medall(i,1)%parallax,",",medall(i,1)%nhealp,new_line(" ")
+    enddo
+    close(30)
     
     do i = 0, 12*nside**2-1
-        a(i+1,1) = kmul_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
-        a(i+1,2) = kmul_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
+        a(i+1,1) = kmul_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
+        a(i+1,2) = kmul_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
         a(i+1,3) = 0!kmul_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1) = medall(i,1)%pmra/1000.0/3600.0 * cosd(medall(i,1)%dec)
-        a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1+12*nside**2) = medall(i,1)%pmdec/1000.0/3600.0
+        ym(i+1) = medall(i,1)%pml/1000.0/3600.0 * cosd(medall(i,1)%b)
+        a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
+        a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
+        a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
+        ym(i+1+12*nside**2) = medall(i,1)%pmb/1000.0/3600.0
     enddo
     
+    open(20, file='D:\gaiaread\matrix.dat',CARRIAGECONTROL='NONE')
+    do i = 1, 2*12*nside**2
+        write(20,*) a(i,1),"v1+", a(i,2),"v2+", a(i,3),"v3=", ym(i),new_line(" ")
+    enddo
+    close(20)
+
+    v = 0
+    dv = 0
     
     call LSQM(a,ym,w,v,dv,s,r,cond)
     
@@ -195,94 +157,10 @@
     do i = 1, 3
         print*, v(i), dv(i)
     enddo
-    read(*,*)
-    
-    do i = 1, 400
-      write(20,*) i*100, med_err(i), n(i)
-    enddo
-    
-    close(20)
-    
-    open(20, file='D:\gaiaread\matrix.dat')
-    do i = 1, 2*12*nside**2
-        write(20,*) a(i,1),"v1+", a(i,2),"v2+", a(i,3),"v3=", ym(i)
-    enddo
-    close(20)
-    
-    open(30,file='D:\gaiaread\vsun.dat')
-    do i = 1, 3
-        write(30,*) v(i), dv(i)
-    enddo
-    close(30)
-    
-    !open(20,file='D:\gaiaread\meddist.dat')
-    !do i = 0, 12*nside**2
-    !    write(20,*) meddist(i)
-    !enddo
-    !
-    !close(20)
-    
-    !line_num = 0
-    !call csv_file_line_count('D:\gaiaread\testout.csv',line_num)
-    !print*,'output lines',line_num
-    
-    call AitoffGrid(10,.true.)
-    status = getwindowconfig(wc)
-    
-    k = SAVEIMAGE('D:\gaiaread\galsph.png',0,0, wc%numxpixels,wc%numypixels)
-    
-    call clearscreen($GCLEARSCREEN)
-    
-    open(40,file='D:\gaiaread\meanpmra.dat')
-    do i = 0, 12*nside**2-1
-        write(40,'(9I)') nhealp(i)!medall(i,:)%pmra!,medall(1,1)%pmdec,sum(nall)
-    enddo
-    
-    close(40)
-    
-    open(20,file='D:\gaiaread\nall.dat')
-    write(20,*) "#", sum(nall), sum(nhealp), maxloc(nall), maxval(nall)
-    do i = 0, 12*nside**2-1
-        write(20,'(10I)') nall(i,:), nhealp(i)
-    enddo
-    
-    close(20)
-    valueexp = 1
 
-!!!Построение легенды
-!!    
-!!    status = setbkcolorrgb(#ffffff)
-!!    CALL CLEARSCREEN ($GCLEARSCREEN)
-!!    
-!!    call DrawLegend("mean distance in kpc            ",meddist, pos)
-!!    
-!!!healpix
-!!    allocate(ipixcolor(0:12*nside**2))
-!!    
-!!    ipixcolor = GetColorGradVect(meddist/maxval(meddist),valueexp)
-!!    
-!!    call DrawHealpix(ipixcolor,nside)
-!!    
-!!    k = SAVEIMAGE('D:\gaiaread\healpdistmap.png',0,0, wc%numxpixels,wc%numypixels)
-!!    
-!!    call clearscreen($GCLEARSCREEN)
-!!    
-!!    valueexp = 1
-!!    nhealpr = 1.0 * nhealp
-!!    ipixcolor = GetColorGradVect(nhealpr/maxval(nhealpr),valueexp)
-!!    
-!!    call drawlegend("object density, thousands       ",nhealpr,pos)
-!!    
-!!    call DrawHealpix(ipixcolor,nside)
-!!    
-!!    k = SAVEIMAGE('D:\gaiaread\healpdens.png',0,0, wc%numxpixels,wc%numypixels)
-    
-    !deallocate(ipixcolor)
-    deallocate(medall,nall,a,ym,w,v,dv,r,meddist)
-    
-    contains
+contains
 
-        subroutine csv_file_line_count ( csv_file_name, line_num )
+    subroutine csv_file_line_count ( csv_file_name, line_num )
 
           character ( len = * ) csv_file_name
           integer ( kind = 4 ) ierror
@@ -326,7 +204,7 @@
 
         end subroutine csv_file_line_count
 
-        subroutine get_unit ( iunit )
+    subroutine get_unit ( iunit )
 
           integer ( kind = 4 ) i
           integer ( kind = 4 ) ios
@@ -354,7 +232,6 @@
 
           return
 
-        end
-
     end
 
+end

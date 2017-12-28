@@ -126,4 +126,16 @@
             character(1024) :: threadString
         end type DataString
     
+        type MedTable 
+            integer :: ihealp = 0
+            real(8) :: lcen = 0
+            real(8) :: bcen = 0
+            real(8) :: l = 0
+            real(8) :: b = 0
+            real(8) :: pml = 0
+            real(8) :: pmb = 0
+            real(8) :: parallax = 0
+            integer :: nhealp = 0
+        end type MedTable
+        
     end module CustomDataTypes
