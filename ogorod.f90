@@ -604,7 +604,7 @@ END FUNCTION kmub_base_11_mod
 REAL(8) FUNCTION kmul_base_prim(j,l,b,px)
 integer, intent(IN) :: j ! Номер функции
 real(8), INTENT (IN)    :: l,b ! гал. координаты в градусах 
-real(4), INTENT (IN)    :: px !  mas
+real(8), INTENT (IN)    :: px !  mas
 
 SELECT CASE (j)
 CASE (1) ! U
@@ -638,7 +638,7 @@ END FUNCTION kmul_base_prim
 REAL(8) FUNCTION kmub_base_prim(j,l,b,px)
 integer, intent(IN) :: j ! Номер функции
 real(8), INTENT (IN)    :: l,b ! гал. координаты в градусах и mas
-real(4), INTENT (IN)    :: px !  mas
+real(8), INTENT (IN)    :: px !  mas
 
 SELECT CASE (j)
 CASE (1) ! U
@@ -667,6 +667,5 @@ CASE DEFAULT
  kmub_base_prim = 0.0
 END SELECT 
 END FUNCTION kmub_base_prim
-
 
 END MODULE OGOROD

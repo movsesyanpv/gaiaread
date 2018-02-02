@@ -136,6 +136,8 @@
             real(8) :: pmb = 0
             real(8) :: parallax = 0
             integer :: nhealp = 0
+            real(8) :: ra = 0
+            real(8) :: dec = 0
         end type MedTable
         
     end module CustomDataTypes

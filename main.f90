@@ -22,14 +22,17 @@
     real(8), dimension(400) :: med_err 
     integer, dimension(400) :: n
     
-    real(8) :: colorgrad, valueexp
     integer, allocatable, dimension(:) :: ipixcolor, nhealp
     real(8), allocatable, dimension(:) :: meddist,nhealpr
     integer :: ipix
-    integer :: nside = 10
+    integer :: nside = 32  
     character(8) :: legnum = ""
     
-    real(8) :: x,y,l,b
+    real(8) :: l,b
+
+    real(8) :: mua, mub, d, ra
+    
+       real(8) :: phi, psi
     
     open(20,file='D:\gaiaread\testout.csv')
     write(20,*)"#solution_id,source_id,random_index,ref_epoch,ra,ra_error,dec,dec_error&
@@ -45,7 +48,7 @@
     ,phot_g_mean_mag,phot_variable_flag,l,b,ecl_lon,ecl_lat"
     
     allocate(comp_count(0:15), medall(0:12*nside**2-1,9),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,9) ,nhealp(0:12*nside**2-1))
-    allocate(nhealpr(0:12*nside**2),a(24*nside**2,3),ym(24*nside**2),w(24*nside**2),v(3),dv(3),r(3,3))
+    allocate(nhealpr(0:12*nside**2),a(24*nside**2,11),ym(24*nside**2),w(24*nside**2),v(11),dv(11),r(11,11))
     
     comp_count = 0
     
@@ -81,11 +84,11 @@
       !!$omp parallel private(l,b,x,y)
       !!$omp do
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.1))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((1.0/GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.2))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
             !call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
-            l = gaiadata(i)%ra/180*4*atan(1.0)
-            b = gaiadata(i)%dec/180*4*atan(1.0)
+            l = gaiadata(i)%l/180*4*atan(1.0)
+            b = gaiadata(i)%b/180*4*atan(1.0)
             call ang2pix_ring(nside, l, b, ipix)
             meddist(ipix) = (meddist(ipix) * nhealp(ipix) + dist)/(nhealp(ipix)+1)
           maxdist = max(dist,maxdist)
@@ -93,11 +96,13 @@
           !print*, k
           medall(ipix,1)%ihealp = ipix
           call pix2ang_ring(nside, ipix, medall(ipix,1)%lcen, medall(ipix,1)%bcen)
-          medall(ipix,1)%l = (medall(ipix,1)%l*nhealp(ipix)+GaiaData(i)%ra)/(nhealp(ipix)+1)
-          medall(ipix,1)%b = (medall(ipix,1)%b*nhealp(ipix)+GaiaData(i)%dec)/(nhealp(ipix)+1)
-          medall(ipix,1)%pml = (medall(ipix,1)%pml*nhealp(ipix)+GaiaData(i)%pmra)/(nhealp(ipix)+1)
-          medall(ipix,1)%pmb = (medall(ipix,1)%pmb*nhealp(ipix)+GaiaData(i)%pmdec)/(nhealp(ipix)+1)
-          medall(ipix,1)%parallax = (medall(ipix,1)%parallax*nhealp(ipix)+GaiaData(i)%parallax)/(nhealp(ipix)+1)
+          medall(ipix,1)%l = (medall(ipix,1)%l+GaiaData(i)%l)
+          medall(ipix,1)%b = (medall(ipix,1)%b+GaiaData(i)%b)
+          medall(ipix,1)%ra = (medall(ipix,1)%ra+GaiaData(i)%ra)
+          medall(ipix,1)%dec = (medall(ipix,1)%dec+GaiaData(i)%dec)
+          medall(ipix,1)%pml = (medall(ipix,1)%pml+GaiaData(i)%pmra)
+          medall(ipix,1)%pmb = (medall(ipix,1)%pmb+GaiaData(i)%pmdec)
+          medall(ipix,1)%parallax = (medall(ipix,1)%parallax+GaiaData(i)%parallax)
           medall(ipix,1)%nhealp = medall(ipix,1)%nhealp + 1
           !medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
           !medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
@@ -124,37 +129,50 @@
     !
     enddo
     
+    phi=44.9999987477610/180*4*atan(1.0)
+    psi=85.3205163480806/180*4*atan(1.0)
+    call ang2pix_ring(nside,phi,psi,ipix)
+    call pix2ang_ring(nside,ipix,phi,psi)
+    print*,ipix,phi*180/4/atan(1.0),psi*180/4/atan(1.0)
+
     open(30,file="D:\gaiaread\out.csv",CARRIAGECONTROL='NONE',ENCODING='UTF-8')
-    write(30,*) "ihealp,lcen,bcen,ra,dec,pmra,pmdec,parallax,nhealp",new_line(" ")
+    write(30,*) "ihealp,lcen,bcen,l,b,pml,pmb,parallax,nhealp",new_line(" ")
     do i = 0,12*nside**2-1
-        write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen*180/4.0/atan(1.0),",",medall(i,1)%bcen*180/4.0/atan(1.0),",",medall(i,1)%l,",",medall(i,1)%b,",",medall(i,1)%pml,",",medall(i,1)%pmb,",",medall(i,1)%parallax,",",medall(i,1)%nhealp,new_line(" ")
+        mua = medall(i,1)%pml
+        mub = medall(i,1)%pmb
+        d = medall(i,1)%dec/180*4*atan(1.0)
+        ra = medall(i,1)%ra/180*4*atan(1.0)
+        !call Galaxy(ra,d,medall(i,1)%l,medall(i,1)%b)
+        call GalaxMu(mua,mub,medall(i,1)%l/180*4*atan(1.0),medall(i,1)%b/180*4*atan(1.0),d,medall(i,1)%pml,medall(i,1)%pmb)
+        write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen*180/4.0/atan(1.0),",",medall(i,1)%bcen*180/4.0/atan(1.0),",",medall(i,1)%l/medall(i,1)%nhealp,",",medall(i,1)%b/medall(i,1)%nhealp,",",medall(i,1)%pml/medall(i,1)%nhealp,",",medall(i,1)%pmb/medall(i,1)%nhealp,",",medall(i,1)%parallax/medall(i,1)%nhealp,",",medall(i,1)%nhealp,new_line(" ")
     enddo
     close(30)
     
     do i = 0, 12*nside**2-1
-        a(i+1,1) = kmul_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
-        a(i+1,2) = kmul_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-        a(i+1,3) = 0!kmul_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1) = medall(i,1)%pml/1000.0/3600.0 * cosd(medall(i,1)%b)
-        a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-        a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-        a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%l,medall(i,1)%b,medall(i,1)%parallax)
-        ym(i+1+12*nside**2) = medall(i,1)%pmb/1000.0/3600.0
+        do j = 1,11
+            a(i+1,j) = kmul_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
+            a(i+1+12*nside**2,j) = kmub_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
+        enddo
+        ym(i+1) = medall(i,1)%pml/medall(i,1)%nhealp!/1000.0!/3600.0/180*4*atan(1.0)! * cosd(medall(i,1)%b)
+        ym(i+1+12*nside**2) = medall(i,1)%pmb/medall(i,1)%nhealp!/1000.0!/3600.0/180*4*atan(1.0)
     enddo
     
     open(20, file='D:\gaiaread\matrix.dat',CARRIAGECONTROL='NONE')
-    do i = 1, 2*12*nside**2
-        write(20,*) a(i,1),"v1+", a(i,2),"v2+", a(i,3),"v3=", ym(i),new_line(" ")
+    do i = 1, 24*nside**2
+        do j=1,11
+            write(20,*) a(i,j),","
+        enddo
+        write(20,*)ym(i),new_line(" ")
     enddo
     close(20)
 
-    v = 0
-    dv = 0
+    v(:)= 0
+    dv(:) = 0
     
     call LSQM(a,ym,w,v,dv,s,r,cond)
     
     print*, 'total compatible entries', sum(comp_count)
-    do i = 1, 3
+    do i = 1, 11
         print*, v(i), dv(i)
     enddo
 

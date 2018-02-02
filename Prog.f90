@@ -32,17 +32,10 @@
     character(8) :: legnum = ""
     
     TYPE (xycoord) pos
-    TYPE (qwinfo)  winfo
     LOGICAL(4) status
     TYPE (windowconfig) wc
     
     real(8) :: x,y,l,b
-    
-    winfo%type = QWIN$SET
-    winfo%x = 200
-    winfo%Y = 200    ! y coordinate for upper left
-    winfo%H = 1280    ! window height
-    winfo%W = 720    ! window width
     
     !k = SETWSIZEQQ (QWIN$FRAMEWINDOW, winfo)
     
