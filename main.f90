@@ -25,14 +25,20 @@
     integer, allocatable, dimension(:) :: ipixcolor, nhealp
     real(8), allocatable, dimension(:) :: meddist,nhealpr
     integer :: ipix
-    integer :: nside = 32  
+    integer :: nside = 12 
+    integer :: Nh
     character(8) :: legnum = ""
     
     real(8) :: l,b
 
     real(8) :: mua, mub, d, ra
     
-       real(8) :: phi, psi
+    integer :: mindst = 100
+    integer :: maxdst = 200
+    character(6) :: mindch
+    character(6) :: maxdch
+    
+    real(8) :: phi, psi
     
     open(20,file='D:\gaiaread\testout.csv')
     write(20,*)"#solution_id,source_id,random_index,ref_epoch,ra,ra_error,dec,dec_error&
@@ -47,8 +53,10 @@
     ,scan_direction_mean_k3,scan_direction_mean_k4,phot_g_n_obs,phot_g_mean_flux,phot_g_mean_flux_error&
     ,phot_g_mean_mag,phot_variable_flag,l,b,ecl_lon,ecl_lat"
     
-    allocate(comp_count(0:15), medall(0:12*nside**2-1,9),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,9) ,nhealp(0:12*nside**2-1))
-    allocate(nhealpr(0:12*nside**2),a(24*nside**2,11),ym(24*nside**2),w(24*nside**2),v(11),dv(11),r(11,11))
+    Nh = 12*nside**2
+    
+    allocate(comp_count(0:15), medall(0:Nh-1,9),meddist(0:Nh-1), nall(0:Nh-1,9) ,nhealp(0:Nh-1))
+    allocate(nhealpr(0:Nh-1),a(2*Nh,11),ym(2*Nh),w(2*Nh),v(11),dv(11),r(11,11))
     
     comp_count = 0
     
@@ -84,7 +92,7 @@
       !!$omp parallel private(l,b,x,y)
       !!$omp do
       do i = 1, size(GaiaData)
-        if((1.0/GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.2))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((1.0/GaiaData(i)%parallax .ge. mindst/1000.0).and.((1.0/GaiaData(i)%parallax) .le. maxdst/1000.0))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
             !call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
             l = gaiadata(i)%l/180*4*atan(1.0)
@@ -134,10 +142,15 @@
     call ang2pix_ring(nside,phi,psi,ipix)
     call pix2ang_ring(nside,ipix,phi,psi)
     print*,ipix,phi*180/4/atan(1.0),psi*180/4/atan(1.0)
+    
+    if(any((medall(:,1)%nhealp.eq.0)))then
+        print*, "There is an empty HEALPIX sector at ", minloc(abs(medall(:,1)%nhealp))  
+        stop
+    endif
 
     open(30,file="D:\gaiaread\out.csv",CARRIAGECONTROL='NONE',ENCODING='UTF-8')
     write(30,*) "ihealp,lcen,bcen,l,b,pml,pmb,parallax,nhealp",new_line(" ")
-    do i = 0,12*nside**2-1
+    do i = 0,Nh-1
         mua = medall(i,1)%pml
         mub = medall(i,1)%pmb
         d = medall(i,1)%dec/180*4*atan(1.0)
@@ -148,7 +161,7 @@
     enddo
     close(30)
     
-    do i = 0, 12*nside**2-1
+    do i = 0,Nh-1
         do j = 1,11
             a(i+1,j) = kmul_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
             a(i+1+12*nside**2,j) = kmub_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
@@ -168,13 +181,19 @@
 
     v(:)= 0
     dv(:) = 0
+    w = 1
     
     call LSQM(a,ym,w,v,dv,s,r,cond)
     
+    write(mindch,"(I6)") mindst
+    write(maxdch,"(I6)") maxdst
+    
+    open(10,file='D:\gaiaread\og'//trim(adjustl(mindch))//'-'//trim(adjustl(maxdch))//'.dat')
     print*, 'total compatible entries', sum(comp_count)
     do i = 1, 11
-        print*, v(i), dv(i)
+        write(10,*) v(i), dv(i)
     enddo
+    close(10)
 
 contains
 

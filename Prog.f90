@@ -39,8 +39,8 @@
     
     !k = SETWSIZEQQ (QWIN$FRAMEWINDOW, winfo)
     
-    wc%numxpixels = 1920
-    wc%numypixels = 1080
+    wc%numxpixels = 3840
+    wc%numypixels = 2160
     status = setWINDOWCONFIG(wc)
     IF (.NOT. status) status = SETWINDOWCONFIG(wc)
     status = setwindow(.true.,0.0,0.0,1.0*wc%numxpixels,1.0*wc%numypixels)
