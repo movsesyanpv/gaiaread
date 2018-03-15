@@ -46,3 +46,4 @@ meanpmra.dat
 ./vs/*
 *.log
 buildwsl/CMakeFiles/feature_tests.bin
+/.vs
