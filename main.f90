@@ -27,16 +27,24 @@
     integer :: ipix
     integer :: nside = 12 
     integer :: Nh
+    integer :: m = 11
+    character(2) :: mchar
     character(8) :: legnum = ""
+    real(8) :: RAD_TO_DEG = 180/4.0/atan(1.0)
+    real(8) :: DEG_TO_RAD = 4.0*atan(1.0)/180
     
     real(8) :: l,b
 
-    real(8) :: mua, mub, d, ra
+    real(8) :: mua, mud, d, ra
     
-    integer :: mindst = 100
-    integer :: maxdst = 200
+    integer :: mindst = 500
+    integer :: maxdst = 1000
     character(6) :: mindch
     character(6) :: maxdch
+    
+    type(tuvw) :: Vs
+    type(trot) :: Ws
+    type(tdef) :: Ms
     
     real(8) :: phi, psi
     
@@ -56,16 +64,15 @@
     Nh = 12*nside**2
     
     allocate(comp_count(0:15), medall(0:Nh-1,9),meddist(0:Nh-1), nall(0:Nh-1,9) ,nhealp(0:Nh-1))
-    allocate(nhealpr(0:Nh-1),a(2*Nh,11),ym(2*Nh),w(2*Nh),v(11),dv(11),r(11,11))
+    allocate(nhealpr(0:Nh-1),a(2*Nh,m),ym(2*Nh),w(2*Nh),v(m),dv(m),r(m,m))
     
     comp_count = 0
     
-    !med_err = 0
     n = 0
     nhealp = 0
     meddist = 0
     
-     do j = 0, 15
+    do j = 0, 15
     
       line_num = 0
     
@@ -75,9 +82,7 @@
       call csv_file_line_count(csv_file_name,line_num)
     
       allocate(GaiaData(line_num-1))
-    
-      !print*,csv_file_name, ' contains ', line_num-1, ' entries'
-    
+        
       open(10,file=csv_file_name)
       read(10,*) readStr
       do i = 1, size(GaiaData)
@@ -94,16 +99,17 @@
       do i = 1, size(GaiaData)
         if((1.0/GaiaData(i)%parallax .ge. mindst/1000.0).and.((1.0/GaiaData(i)%parallax) .le. maxdst/1000.0))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
-            !call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
-            l = gaiadata(i)%l/180*4*atan(1.0)
-            b = gaiadata(i)%b/180*4*atan(1.0)
+            l = gaiadata(i)%l*DEG_TO_RAD
+            b = gaiadata(i)%b*DEG_TO_RAD
             call ang2pix_ring(nside, l, b, ipix)
             meddist(ipix) = (meddist(ipix) * nhealp(ipix) + dist)/(nhealp(ipix)+1)
           maxdist = max(dist,maxdist)
           k = int(aint(dist/100))+1
-          !print*, k
           medall(ipix,1)%ihealp = ipix
           call pix2ang_ring(nside, ipix, medall(ipix,1)%lcen, medall(ipix,1)%bcen)
+          if(GaiaData(i)%l .le. 0)then
+              GaiaData(i)%l = GaiaData(i)%l + 360
+          endif
           medall(ipix,1)%l = (medall(ipix,1)%l+GaiaData(i)%l)
           medall(ipix,1)%b = (medall(ipix,1)%b+GaiaData(i)%b)
           medall(ipix,1)%ra = (medall(ipix,1)%ra+GaiaData(i)%ra)
@@ -112,36 +118,31 @@
           medall(ipix,1)%pmb = (medall(ipix,1)%pmb+GaiaData(i)%pmdec)
           medall(ipix,1)%parallax = (medall(ipix,1)%parallax+GaiaData(i)%parallax)
           medall(ipix,1)%nhealp = medall(ipix,1)%nhealp + 1
-          !medall(ipix,k)%ra = (medall(ipix,k)%ra*nall(ipix,k)+GaiaData(i)%ra)/(nall(ipix,k)+1)
-          !medall(ipix,k)%dec = (medall(ipix,k)%dec*nall(ipix,k)+GaiaData(i)%dec)/(nall(ipix,k)+1)
-          !medall(ipix,k)%pmra = (medall(ipix,k)%pmra*nall(ipix,k)+GaiaData(i)%pmra)/(nall(ipix,k)+1)
-          !medall(ipix,k)%pmdec = (medall(ipix,k)%pmdec*nall(ipix,k)+GaiaData(i)%pmdec)/(nall(ipix,k)+1)
-          !medall(ipix,k)%parallax = (medall(ipix,k)%parallax*nall(ipix,k)+GaiaData(i)%parallax)/(nall(ipix,k)+1)
-          !nall(ipix,k) = nall(ipix,k) + 1
           med_err(k) = (med_err(k) * n(k) + GaiaData(i)%parallax_error/GaiaData(i)%parallax)/(n(k)+1)
           n(k) = n(k) + 1
-          !write(20,*) GaiaData(i)%parallax, GaiaData(i)%parallax_error/GaiaData(i)%parallax
-          !write(20,*) log10(dist), GaiaData(i)%parallax_error*dist/1000.0
           comp_count(j) = comp_count(j) + 1
-        !else
-        !  !print*,GaiaData(i)
         endif
       enddo
       !!$omp end do
       !!$omp end parallel
     
       deallocate(GaiaData)
-    !  
+
       print*, trim(csv_file_name), ' contains', comp_count(j), ' compatible entries, max distance is', maxdist, 'pc'
-    !  print*, 'max distance in ', trim(csv_file_name), ' is', maxdist, 'pc'
-    !
     enddo
     
-    phi=44.9999987477610/180*4*atan(1.0)
-    psi=85.3205163480806/180*4*atan(1.0)
-    call ang2pix_ring(nside,phi,psi,ipix)
-    call pix2ang_ring(nside,ipix,phi,psi)
-    print*,ipix,phi*180/4/atan(1.0),psi*180/4/atan(1.0)
+    do i=0,Nh
+        medall(i,1)%lcen     = medall(i,1)%lcen     * RAD_TO_DEG
+        medall(i,1)%bcen     = medall(i,1)%bcen     * RAD_TO_DEG
+        medall(i,1)%l        = medall(i,1)%l        / medall(i,1)%nhealp
+        medall(i,1)%b        = medall(i,1)%b        / medall(i,1)%nhealp
+        medall(i,1)%ra       = medall(i,1)%ra       / medall(i,1)%nhealp
+        medall(i,1)%dec      = medall(i,1)%dec      / medall(i,1)%nhealp
+        medall(i,1)%pml      = medall(i,1)%pml      / medall(i,1)%nhealp
+        medall(i,1)%pmb      = medall(i,1)%pmb      / medall(i,1)%nhealp
+        medall(i,1)%parallax = medall(i,1)%parallax / medall(i,1)%nhealp
+    enddo
+        
     
     if(any((medall(:,1)%nhealp.eq.0)))then
         print*, "There is an empty HEALPIX sector at ", minloc(abs(medall(:,1)%nhealp))  
@@ -152,27 +153,29 @@
     write(30,*) "ihealp,lcen,bcen,l,b,pml,pmb,parallax,nhealp",new_line(" ")
     do i = 0,Nh-1
         mua = medall(i,1)%pml
-        mub = medall(i,1)%pmb
-        d = medall(i,1)%dec/180*4*atan(1.0)
-        ra = medall(i,1)%ra/180*4*atan(1.0)
-        !call Galaxy(ra,d,medall(i,1)%l,medall(i,1)%b)
-        call GalaxMu(mua,mub,medall(i,1)%l/180*4*atan(1.0),medall(i,1)%b/180*4*atan(1.0),d,medall(i,1)%pml,medall(i,1)%pmb)
-        write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen*180/4.0/atan(1.0),",",medall(i,1)%bcen*180/4.0/atan(1.0),",",medall(i,1)%l/medall(i,1)%nhealp,",",medall(i,1)%b/medall(i,1)%nhealp,",",medall(i,1)%pml/medall(i,1)%nhealp,",",medall(i,1)%pmb/medall(i,1)%nhealp,",",medall(i,1)%parallax/medall(i,1)%nhealp,",",medall(i,1)%nhealp,new_line(" ")
+        mud = medall(i,1)%pmb
+        d = medall(i,1)%dec
+        ra = medall(i,1)%ra
+        call GalaxMu(mua,mud,medall(i,1)%l,medall(i,1)%b,d,medall(i,1)%pml,medall(i,1)%pmb)
+        write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen,",",medall(i,1)%bcen,",",medall(i,1)%l,",",medall(i,1)%b,",",&
+                    medall(i,1)%pml,",",medall(i,1)%pmb,",",medall(i,1)%parallax,",",medall(i,1)%nhealp,new_line(" ")
     enddo
     close(30)
     
     do i = 0,Nh-1
-        do j = 1,11
-            a(i+1,j) = kmul_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
-            a(i+1+12*nside**2,j) = kmub_base_prim(j,medall(i,1)%l/medall(i,1)%nhealp,medall(i,1)%b/medall(i,1)%nhealp,medall(i,1)%parallax/medall(i,1)%nhealp)
+        do j = 1,m
+            a(i+1,j) = kmul_base_prim(j,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
+            a(i+1+12*nside**2,j) = kmub_base_prim(j,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
         enddo
-        ym(i+1) = medall(i,1)%pml/medall(i,1)%nhealp!/1000.0!/3600.0/180*4*atan(1.0)! * cosd(medall(i,1)%b)
-        ym(i+1+12*nside**2) = medall(i,1)%pmb/medall(i,1)%nhealp!/1000.0!/3600.0/180*4*atan(1.0)
+        ym(i+1) = medall(i,1)%pml
+        ym(i+1+Nh) = medall(i,1)%pmb
+        !ym(i+1) = kmul(Vs,Ws,Ms,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)        !Генерация по модели Огородникова-Милна
+        !ym(i+1+Nh) = kmub(Vs,Ws,Ms,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
     enddo
     
     open(20, file='D:\gaiaread\matrix.dat',CARRIAGECONTROL='NONE')
-    do i = 1, 24*nside**2
-        do j=1,11
+    do i = 1, 2*Nh
+        do j=1,m
             write(20,*) a(i,j),","
         enddo
         write(20,*)ym(i),new_line(" ")
@@ -188,9 +191,16 @@
     write(mindch,"(I6)") mindst
     write(maxdch,"(I6)") maxdst
     
+    write(mchar,"(i2)") m
+    open(20,file='D:\gaiaread\corrMatrix.dat',carriagecontrol='none')
+    do i=1,m
+        write(20,"("//trim(adjustl(mchar))//"f7.3,a1)") r(i,:),new_line("")
+    enddo
+    close(20)
+    
     open(10,file='D:\gaiaread\og'//trim(adjustl(mindch))//'-'//trim(adjustl(maxdch))//'.dat')
     print*, 'total compatible entries', sum(comp_count)
-    do i = 1, 11
+    do i = 1, m
         write(10,*) v(i), dv(i)
     enddo
     close(10)

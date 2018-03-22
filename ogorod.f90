@@ -13,18 +13,27 @@ End Type
 
 Type  TUVW  ! Скорость движения Солнца
   Sequence
-  Real(8) :: U,V,W
+  Real(8) :: U = 10
+  real(8) :: V = 20
+  real(8) :: W = 8
 End Type    
 
 
 Type  TRot  ! Угловая скорость
   Sequence
-  Real(8) :: X,Y,Z
+  Real(8) :: X = 0
+  real(8) :: Y = 0
+  real(8) :: Z = -10
 End Type    
 
 Type  TDef  ! Матрица деформации M^+
   Sequence
-  Real(4) :: M12, M13, M23, M11, M22, M33
+  Real(4) :: M12 = 10
+  real(4) :: M13 = 0
+  real(4) :: M23 = 0
+  real(4) :: M11 = 0
+  real(4) :: M22 = 0
+  real(4) :: M33 = 0
 End Type    
 
 
