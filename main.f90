@@ -1,8 +1,6 @@
     use CustomDataTypes
-    !use Projection
     use GALACTIC
     use HealPix
-    !use ColorPalette
     use LSQ
     use OGOROD
     
@@ -28,6 +26,7 @@
     integer :: nside = 12 
     integer :: Nh
     integer :: m = 11
+    real(8) :: k_mod = 4.738
     character(2) :: mchar
     character(8) :: legnum = ""
     real(8) :: RAD_TO_DEG = 180/4.0/atan(1.0)
@@ -37,8 +36,8 @@
 
     real(8) :: mua, mud, d, ra
     
-    integer :: mindst = 500
-    integer :: maxdst = 1000
+    integer :: mindst = 0
+    integer :: maxdst = 200
     character(6) :: mindch
     character(6) :: maxdch
     
@@ -103,24 +102,21 @@
             b = gaiadata(i)%b*DEG_TO_RAD
             call ang2pix_ring(nside, l, b, ipix)
             meddist(ipix) = (meddist(ipix) * nhealp(ipix) + dist)/(nhealp(ipix)+1)
-          maxdist = max(dist,maxdist)
-          k = int(aint(dist/100))+1
-          medall(ipix,1)%ihealp = ipix
-          call pix2ang_ring(nside, ipix, medall(ipix,1)%lcen, medall(ipix,1)%bcen)
-          if(GaiaData(i)%l .le. 0)then
-              GaiaData(i)%l = GaiaData(i)%l + 360
-          endif
-          medall(ipix,1)%l = (medall(ipix,1)%l+GaiaData(i)%l)
-          medall(ipix,1)%b = (medall(ipix,1)%b+GaiaData(i)%b)
-          medall(ipix,1)%ra = (medall(ipix,1)%ra+GaiaData(i)%ra)
-          medall(ipix,1)%dec = (medall(ipix,1)%dec+GaiaData(i)%dec)
-          medall(ipix,1)%pml = (medall(ipix,1)%pml+GaiaData(i)%pmra)
-          medall(ipix,1)%pmb = (medall(ipix,1)%pmb+GaiaData(i)%pmdec)
-          medall(ipix,1)%parallax = (medall(ipix,1)%parallax+GaiaData(i)%parallax)
-          medall(ipix,1)%nhealp = medall(ipix,1)%nhealp + 1
-          med_err(k) = (med_err(k) * n(k) + GaiaData(i)%parallax_error/GaiaData(i)%parallax)/(n(k)+1)
-          n(k) = n(k) + 1
-          comp_count(j) = comp_count(j) + 1
+            maxdist = max(dist,maxdist)
+            medall(ipix,1)%ihealp = ipix
+            call pix2ang_ring(nside, ipix, medall(ipix,1)%lcen, medall(ipix,1)%bcen)
+            if(GaiaData(i)%l .lt. 0)then
+                GaiaData(i)%l = GaiaData(i)%l + 360.0
+            endif
+            medall(ipix,1)%l = (medall(ipix,1)%l+GaiaData(i)%l)
+            medall(ipix,1)%b = (medall(ipix,1)%b+GaiaData(i)%b)
+            medall(ipix,1)%ra = (medall(ipix,1)%ra+GaiaData(i)%ra)
+            medall(ipix,1)%dec = (medall(ipix,1)%dec+GaiaData(i)%dec)
+            medall(ipix,1)%pml = (medall(ipix,1)%pml+GaiaData(i)%pmra)
+            medall(ipix,1)%pmb = (medall(ipix,1)%pmb+GaiaData(i)%pmdec)
+            medall(ipix,1)%parallax = (medall(ipix,1)%parallax+GaiaData(i)%parallax)
+            medall(ipix,1)%nhealp = medall(ipix,1)%nhealp + 1
+            comp_count(j) = comp_count(j) + 1
         endif
       enddo
       !!$omp end do
@@ -154,9 +150,8 @@
     do i = 0,Nh-1
         mua = medall(i,1)%pml
         mud = medall(i,1)%pmb
-        d = medall(i,1)%dec
-        ra = medall(i,1)%ra
-        call GalaxMu(mua,mud,medall(i,1)%l,medall(i,1)%b,d,medall(i,1)%pml,medall(i,1)%pmb)
+        call Equatorial(medall(i,1)%lcen,medall(i,1)%bcen,ra,d)
+        call GalaxMu(mua,mud,medall(i,1)%lcen,medall(i,1)%bcen,d,medall(i,1)%pml,medall(i,1)%pmb)
         write(30,*) medall(i,1)%ihealp,",",medall(i,1)%lcen,",",medall(i,1)%bcen,",",medall(i,1)%l,",",medall(i,1)%b,",",&
                     medall(i,1)%pml,",",medall(i,1)%pmb,",",medall(i,1)%parallax,",",medall(i,1)%nhealp,new_line(" ")
     enddo
@@ -167,8 +162,8 @@
             a(i+1,j) = kmul_base_prim(j,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
             a(i+1+12*nside**2,j) = kmub_base_prim(j,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
         enddo
-        ym(i+1) = medall(i,1)%pml
-        ym(i+1+Nh) = medall(i,1)%pmb
+        ym(i+1) = medall(i,1)%pml*k_mod
+        ym(i+1+Nh) = medall(i,1)%pmb*k_mod
         !ym(i+1) = kmul(Vs,Ws,Ms,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)        !Генерация по модели Огородникова-Милна
         !ym(i+1+Nh) = kmub(Vs,Ws,Ms,medall(i,1)%lcen,medall(i,1)%bcen,medall(i,1)%parallax)
     enddo
