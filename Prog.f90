@@ -26,7 +26,7 @@
     
     real(8) :: colorgrad, valueexp
     integer, allocatable, dimension(:) :: ipixcolor, nhealp
-    real(8), allocatable, dimension(:) :: meddist,nhealpr
+    real(8), allocatable, dimension(:) :: meddist,nhealpr, rnd
     integer :: ipix
     integer :: nside = 10
     character(8) :: legnum = ""
@@ -47,7 +47,7 @@
     !CALL MoveTo_W(1.0*wc%numxpixels+0.05, 1.0*wc%numypixels+0.1, pos)
     CALL MoveTo(wc%numxpixels, wc%numypixels, pos)
     
-    status = setbkcolorrgb(#000000)
+    status = setbkcolorrgb(#ffffff)
     CALL CLEARSCREEN ($GCLEARSCREEN)
     
     j = initializefonts()
@@ -170,44 +170,14 @@
     !medall%ra = 4.0*atan(1.0)*medall%ra/180.0
     !medall%dec = 4.0*atan(1.0)*medall%dec/180.0
     
-    do i = 0, 12*nside**2-1
-        a(i+1,1) = kmul_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)           !TODO: перевести mura mudec в mul mub; составить систему и решить ее при помощи МНК
-        a(i+1,2) = kmul_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        a(i+1,3) = 0!kmul_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1) = medall(i,1)%pmra/1000.0/3600.0 * cosd(medall(i,1)%dec)
-        a(i+1+12*nside**2,1) = kmub_base(1,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        a(i+1+12*nside**2,2) = kmub_base(2,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        a(i+1+12*nside**2,3) = kmub_base(3,medall(i,1)%ra,medall(i,1)%dec,medall(i,1)%parallax)
-        ym(i+1+12*nside**2) = medall(i,1)%pmdec/1000.0/3600.0
-    enddo
-    
-    
-    call LSQM(a,ym,w,v,dv,s,r,cond)
-    
     print*, 'total compatible entries', sum(comp_count)
-    do i = 1, 3
-        print*, v(i), dv(i)
-    enddo
-    read(*,*)
     
     do i = 1, 400
       write(20,*) i*100, med_err(i), n(i)
     enddo
     
     close(20)
-    
-    open(20, file='D:\gaiaread\matrix.dat')
-    do i = 1, 2*12*nside**2
-        write(20,*) a(i,1),"v1+", a(i,2),"v2+", a(i,3),"v3=", ym(i)
-    enddo
-    close(20)
-    
-    open(30,file='D:\gaiaread\vsun.dat')
-    do i = 1, 3
-        write(30,*) v(i), dv(i)
-    enddo
-    close(30)
-    
+            
     !open(20,file='D:\gaiaread\meddist.dat')
     !do i = 0, 12*nside**2
     !    write(20,*) meddist(i)
@@ -250,7 +220,7 @@
 !!    call DrawLegend("mean distance in kpc            ",meddist, pos)
 !!    
 !!!healpix
-!!    allocate(ipixcolor(0:12*nside**2))
+    allocate(ipixcolor(0:12*nside**2),rnd(0:12*nside**2))
 !!    
 !!    ipixcolor = GetColorGradVect(meddist/maxval(meddist),valueexp)
 !!    
@@ -266,11 +236,13 @@
 !!    
 !!    call drawlegend("object density, thousands       ",nhealpr,pos)
 !!    
-!!    call DrawHealpix(ipixcolor,nside)
+    call RANDOM_NUMBER(rnd)
+    ipixcolor = rnd*#ffffff
+    call DrawHealpix(ipixcolor,nside)
 !!    
-!!    k = SAVEIMAGE('D:\gaiaread\healpdens.png',0,0, wc%numxpixels,wc%numypixels)
+    k = SAVEIMAGE('D:\gaiaread\healpexample.png',0,0, wc%numxpixels,wc%numypixels)
     
-    !deallocate(ipixcolor)
+    deallocate(ipixcolor, rnd)
     deallocate(medall,nall,a,ym,w,v,dv,r,meddist)
     
     contains
