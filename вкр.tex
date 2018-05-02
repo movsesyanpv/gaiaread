@@ -114,6 +114,45 @@
 
 \end{titlepage}
 
+\begin{titlepage}
+
+\begin{center}
+{\small \bf Saint Petersburg State University
+
+Кафедра астрономии}
+\end{center}
+
+\vspace{2cm}
+%\maketitle
+\begin{center}
+  \large{\bf Kinematic analysis of TGAS catalogue}
+ \end{center}
+
+\vspace{3cm}
+
+\hspace{8cm}\parbox{8cm}{	% Лучше делать так, чем с помощью flushright - сдвинутый текст будет выровнен по левому краю.
+
+\footnotesize{{\bf Выпускная квалификационная работа}\\
+студента группы 13.С04-мм\\
+П. В.\,Мовсесяна}  % Собственное отчество тоже надо бы указывать. :) 
+
+\vspace{1cm}
+
+{\bf Научный руководитель}\\
+А. С.\,Цветков \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
+}
+
+
+\vfill % Лучше так - то, что ниже, окажется сдвинутым настолько низко, насколько возможно.
+
+\begin{center}
+\small {Saint Petersburg
+
+2018}
+\end{center}
+
+\end{titlepage}
+
 \tableofcontents
 \newpage
 
@@ -287,7 +326,45 @@ V_r\pi=-U\pi\cos l\cos b -V\pi\sin l\cos b-W\pi\sin b+M_{13}^+\sin2b\cos l+\\+M_
 \mathcal{K}\mu_b=U\pi\cos l\sin b+V\pi\sin l\sin b-W\pi\cos b+\omega_1\sin l-\omega_2\cos l-\\-\frac{1}{2}M_{12}^+\sin2b\sin2l+M_{13}^+\cos2b\cos l+M_{23}^+\cos2b\sin l-\frac{1}{4}M_{11}^*\sin2b\cos2l+\\+\frac{1}{2}X\sin2b
 \end{multline}
 Были получены уравнения~(\ref{Kmul_plus} и \ref{Kmub_plus}) для каждой HEALPix площадки, решались они совместно методом наименьших квадратов.
-%\subsection{Полученные результаты}
+\section{Полученные результаты}
+\subsection{Подготовка данных}
+Были получены выборки по расстояниям от 0 до 1000 пк через 100 пк.
+\begin{tabular}{|c|c|}
+\hline
+Максимальное расстояние, пк&Количество объектов\\
+\hline
+100& tbd\\
+\hline
+200& tbd\\
+\hline
+300& tbd\\
+\hline
+400& tbd\\
+\hline
+500& tbd\\
+\hline
+600& tbd\\
+\hline
+700& tbd\\
+\hline
+800& tbd\\
+\hline
+900& tbd\\
+\hline
+1000& tbd\\
+\hline
+\end{tabular}\\\\
+Ниже представлены карты плотности объектов.\\
+\begin{figure}[h!]
+\includegraphics[draft,width=1\linewidth]{healpdens100.jpg}
+\caption*{Плотность объектов 0--100 пк}
+\end{figure}
+\begin{figure}[h!]
+\includegraphics[draft,width=1\linewidth]{healpdens900.jpg}
+\caption*{Плотность объектов 900--1000 пк}
+\end{figure}
+\subsection{Результаты}
+После совместного решения систем для~(\ref{Kmul_plus}) и~(\ref{Kmub_plus}) были получены следующие результаты:
 %\begin{figure}[h!]
 %\includegraphics[width=1\linewidth]{./graphs/UVW100.eps}
 %\end{figure}
