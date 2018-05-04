@@ -1,6 +1,6 @@
 #set term png size 800,600 crop
 #set term pdf
-set term postscript eps enhanced size 8in, 6in
+set term postscript eps enhanced size 8in, 4in
 #set yrange[0:1]
 #set output "healpmeddist.узы"
 #plot "meddist.dat" u 1 w lp
@@ -43,5 +43,5 @@ plot "100.dat" u 1:14:15 w yerr t "M13+" ,\
 	 '' using 1:18 w lines ls 1 notitle,\
 	 "100.dat" u 1:20:21 w yerr t "M11*" ,\
 	 '' using 1:20 w lines ls 1 notitle,\
-	 "100.dat" u 1:22:23 w yerr t "M33",\
+	 "100.dat" u 1:22:23 w yerr t "X",\
 	 '' using 1:22 w lines ls 1 notitle
