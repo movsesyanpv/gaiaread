@@ -28,7 +28,7 @@
     integer, allocatable, dimension(:) :: ipixcolor, nhealp
     real(8), allocatable, dimension(:) :: meddist,nhealpr, rnd
     integer :: ipix
-    integer :: nside = 10
+    integer :: nside = 32
     character(8) :: legnum = ""
     
     TYPE (xycoord) pos
@@ -36,6 +36,9 @@
     TYPE (windowconfig) wc
     
     real(8) :: x,y,l,b
+    
+    integer :: mindst = 900
+    integer :: maxdst = 1000
     
     !k = SETWSIZEQQ (QWIN$FRAMEWINDOW, winfo)
     
@@ -68,7 +71,7 @@
     ,scan_direction_mean_k3,scan_direction_mean_k4,phot_g_n_obs,phot_g_mean_flux,phot_g_mean_flux_error&
     ,phot_g_mean_mag,phot_variable_flag,l,b,ecl_lon,ecl_lat"
     
-    allocate(comp_count(0:15), medall(0:12*nside**2-1,9),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,9) ,nhealp(0:12*nside**2-1))
+    allocate(comp_count(0:15), medall(0:12*nside**2-1,10),meddist(0:12*nside**2-1), nall(0:12*nside**2-1,10) ,nhealp(0:12*nside**2-1))
     allocate(nhealpr(0:12*nside**2),a(24*nside**2,3),ym(24*nside**2),w(24*nside**2),v(3),dv(3),r(3,3))
     
     comp_count = 0
@@ -124,7 +127,7 @@
       !!$omp parallel private(l,b,x,y)
       !!$omp do
       do i = 1, size(GaiaData)
-        if((GaiaData(i)%parallax .ge. 0).and.((1.0/GaiaData(i)%parallax) .le. 0.9))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
+        if((1.0/GaiaData(i)%parallax .ge. mindst/1000.0).and.((1.0/GaiaData(i)%parallax) .le. maxdst/1000.0))then!.and.(GaiaData(i)%pmra.lt.1290000000)) then
             dist = 1000.0/GaiaData(i)%parallax
             call Galaxy(GaiaData(i)%ra,GaiaData(i)%dec,l,b)
             l = rad(l)
@@ -230,17 +233,20 @@
 !!    
 !!    call clearscreen($GCLEARSCREEN)
 !!    
-!!    valueexp = 1
-!!    nhealpr = 1.0 * nhealp
-!!    ipixcolor = GetColorGradVect(nhealpr/maxval(nhealpr),valueexp)
-!!    
-!!    call drawlegend("object density, thousands       ",nhealpr,pos)
-!!    
-    call RANDOM_NUMBER(rnd)
-    ipixcolor = rnd*#ffffff
+    valueexp = 1
+    nhealpr = 1.0 * nhealp
+    ipixcolor = GetColorGradVect(nhealpr/maxval(nhealpr),valueexp)
+    
+    call drawlegend("object density, x10            ",nhealpr*100,pos)
+    
     call DrawHealpix(ipixcolor,nside)
+    k = SAVEIMAGE('D:\gaiaread\healpdens1000.png',0,0, wc%numxpixels,wc%numypixels)
 !!    
-    k = SAVEIMAGE('D:\gaiaread\healpexample.png',0,0, wc%numxpixels,wc%numypixels)
+    !call RANDOM_NUMBER(rnd)
+    !ipixcolor = rnd*#ffffff
+    !call DrawHealpix(ipixcolor,nside)
+!!    
+    !k = SAVEIMAGE('D:\gaiaread\healpexample.png',0,0, wc%numxpixels,wc%numypixels)
     
     deallocate(ipixcolor, rnd)
     deallocate(medall,nall,a,ym,w,v,dv,r,meddist)

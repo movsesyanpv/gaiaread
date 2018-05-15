@@ -36,7 +36,7 @@
 
     real(8) :: mua, mud, d, ra
     
-    integer :: mindst = 0
+    integer :: mindst = 900
     integer :: maxdst = 1000
     character(6) :: mindch
     character(6) :: maxdch

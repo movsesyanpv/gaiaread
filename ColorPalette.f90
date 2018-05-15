@@ -74,38 +74,12 @@ module ColorPalette
         do j = 0, 4000!*3600
             l = -halfpi+halfpi*i/(1750)!*3600)
             b = -4.0*atan(1.0)+4.0*atan(1.0)*j/(2000)!*3600)
-            !
-            !call ang2pix_ring(nside, b, l, k)
-            !status = setcolorrgb(ipixcolor(k))
-            !call Aitoff(b,l,x,y)
-            !print*, l, b
-            !if((x.lt.0).or.(y.lt.0))then
-            !    print*, l, b
-            !    print*, x, y
-            !    stop
-            !endif
-            !l = -l
             call ang2pix_ring(nside, b, l, k)
             call Aitoff(b,l,x,y)
             !!$omp critical
             status = setcolorrgb(ipixcolor(k))
             status = rectangle($GFILLINTERIOR,x,y,x,y)
             !!$omp end critical
-            !l = -l
-            !call ang2pix_ring(nside, b, l, k)
-            !status = setcolorrgb(ipixcolor(k))
-            !call Aitoff(b,l,x,y)
-            !status = rectangle($GFILLINTERIOR,x,y,x,y)
-            !b = -b
-            !call ang2pix_ring(nside, b, l, k)
-            !status = setcolorrgb(ipixcolor(k))
-            !call Aitoff(b,l,x,y)
-            !status = rectangle($GFILLINTERIOR,x,y,x,y)
-            !l = -l
-            !call ang2pix_ring(nside, b, l, k)
-            !status = setcolorrgb(ipixcolor(k))
-            !call Aitoff(b,l,x,y)
-            !status = rectangle($GFILLINTERIOR,x,y,x,y)
         enddo
     enddo
     !!$omp end do
