@@ -39,6 +39,7 @@
 \usepackage{euscript}
 \usepackage{caption}
 \usepackage{pbox}
+\usepackage[square,numbers]{natbib}
 % These packages are all incorporated in the memoir class to one degree or another...
 %\usepackage{tempora}
 
@@ -261,7 +262,7 @@ HEALPix карта имеет $N_{pix}=12N_{side}^2$ ячеек одинаков
 %\subsubsection{Положения ячеек}
 Положения на сфере определяются с помощью $z \equiv \cos\theta$ и $\phi$, где $\theta \in \left[0,\pi\right]$ -- полярное расстояние, измеряемое от северного полюса, а $\phi \in\left[0,2\pi\right]$ -- долгота в радианах, отсчитывающаяся на восток.
 
-Положения центров ячеек вычисляются следующим образом:
+Положения центров ячеек вычисляются следующим образом \cite{healp1}:
 
 $p$ -- номер площадки\\
 Для северной полярной шапки:\\
@@ -356,7 +357,7 @@ V_r\pi=-U\pi\cos l\cos b -V\pi\sin l\cos b-W\pi\sin b+M_{13}^+\sin2b\cos l+\\+M_
 \caption*{Плотность объектов 900--1000 пк}
 \end{figure}
 \\Видно, что близкие объекты (0--100 пк) распределены по сфере равномернее, чем удаленные (900--1000 пк), концентрирующиеся ближе к галактическому экватору.
-\subsection{Результаты}
+\subsection{Результаты}\label{results}
 После совместного решения систем для~(\ref{Kmul_plus}) и~(\ref{Kmub_plus}) были получены следующие результаты:\\\\
 \begin{tabular}{|p{3.1cm}|c|c|c|c|}
 \hline
@@ -443,6 +444,8 @@ $	-4,857	\pm	0,983	$&$	3,747	\pm	0,851$\\
 
 В целом, для близких звезд важен наклон оси вращения, для далеких -- скорость Солнца, а компоненты тензора деформации поля скоростей для главных осей важны как для близких, так и для далеких звезд.
 \section{Заключение}
+В ходе работы было разработано программное обеспечение для работы с каталогом, пикселизации данных и решения уравнений модели Огородникова-Милна. Были получены параметры вышеупомянутой модели для различных выборок по расстояниям (Раздел~\ref{results}).\\
+
 Данная работа носит подготовительный характер для обработки Gaia Data Release 2, вышедшего 25 апреля. В новой версии каталога значительно увеличилось число объектов, для которых известны пять астрометрических параметров.
 \begin{figure}[!h]
 \begin{tabular}{|c|c|c|}
@@ -457,13 +460,15 @@ $	-4,857	\pm	0,983	$&$	3,747	\pm	0,851$\\
 \caption*{Сравнение Gaia DR1 и Gaia DR2}
 \end{figure}
 \newpage
-\begin{thebibliography}{99}
-\bibitem{gaiasite}ESA Science \& Technology: Gaia \url{http://sci.esa.int/gaia/}
-\bibitem{healp1}K.\,M.\,Gorski, E.\,Hivon, A.\,J.\,Banday, B.\,D.\,Wandelt, F.\,K.\,Hansen, M.\,Reinecke, M.\,Bartelman: HEALPix -- a Framework for High Resolution Discretization, and Fast Analysis of Data Distributed on the Sphere \url{https://arxiv.org/abs/astro-ph/0409513}
+\bibliographystyle{plainnat}
+\bibliography{вкр.bib}
+%\begin{thebibliography}{99}
+%\bibitem{gaiasite}ESA Science \& Technology: Gaia \url{http://sci.esa.int/gaia/}
+%\bibitem{healp1}K.\,M.\,Gorski, E.\,Hivon, A.\,J.\,Banday, B.\,D.\,Wandelt, F.\,K.\,Hansen, M.\,Reinecke, M.\,Bartelman: HEALPix -- a Framework for High Resolution Discretization, and Fast Analysis of Data Distributed on the Sphere \url{https://arxiv.org/abs/astro-ph/0409513}
 %\bibitem{ogorod2}В.\,В.\,Витязев, А.\,С.\,Цветков: Кинематический анализ собственных движений звезд, свободный от эффекта систематического хода параллаксов по небу \url{http://www.astro.spbu.ru/sites/default/files/syspar.pdf}
 %\bibitem{ogorod1}К.\,Ф.\,Огородников: Динамика звездных систем (М.: Физматгиз, 1965)
 %\bibitem{dumont}du Mont\,B.\,A, 1977, Astron. Astrophys., 61, N1, pp. 127-132 (1977)
 
-\end{thebibliography}
+%\end{thebibliography}
 
 \end{document}
