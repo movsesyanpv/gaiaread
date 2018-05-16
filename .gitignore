@@ -48,3 +48,5 @@ meanpmra.dat
 buildwsl/CMakeFiles/feature_tests.bin
 /.vs
 *.gz(busy)
+/*.gz
+/*.bbl

@@ -40,6 +40,7 @@
 \usepackage{caption}
 \usepackage{pbox}
 \usepackage[square,numbers]{natbib}
+\setcitestyle{authoryear, open={[},close={]}}
 % These packages are all incorporated in the memoir class to one degree or another...
 %\usepackage{tempora}
 
@@ -88,23 +89,21 @@
 \vspace{2cm}
 %\maketitle
 \begin{center}
-  \large{\bf Кинематический анализ звезд каталога TGAS}
- \end{center}
+Мовсесян Павел Владимирович\\
+  \large{\bf Кинематический анализ звезд каталога TGAS}\\
+  Дипломная работа
+\end{center}
 
 \vspace{3cm}
 
 \hspace{8cm}\parbox{8cm}{	% Лучше делать так, чем с помощью flushright - сдвинутый текст будет выровнен по левому краю.
 
-\footnotesize{{\bf Выпускная квалификационная работа}\\
-студента группы 13.С04-мм\\
-П. В.\,Мовсесяна}  % Собственное отчество тоже надо бы указывать. :) 
+\footnotesize{{\bf Научный руководитель}\\
+А. С.\,Цветков} \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
 
-\vspace{1cm}
-
-{\bf Научный руководитель}\\
-А. С.\,Цветков \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
+{\bf Рецензент}\\
+З. М.\,Малкин \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
 }
-
 
 \vfill % Лучше так - то, что ниже, окажется сдвинутым настолько низко, насколько возможно.
 
@@ -127,23 +126,21 @@ Department of astronomy}
 \vspace{2cm}
 %\maketitle
 \begin{center}
-  \large{\bf Kinematic analysis of TGAS catalogue}
+Movsesian Pavel\\
+  \large{\bf Kinematic analysis of TGAS catalogue}\\
+Graduation thesis
  \end{center}
 
 \vspace{3cm}
 
 \hspace{8cm}\parbox{8cm}{	% Лучше делать так, чем с помощью flushright - сдвинутый текст будет выровнен по левому краю.
 
-\footnotesize{{\bf Final qualification work}\\
-of student group 13.С04-мм\\
-P.\,Movsesian}  % Собственное отчество тоже надо бы указывать. :) 
+\footnotesize{{\bf Scientific supervisor}\\
+A. S.\,Tsvetkov} \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
 
-\vspace{1cm}
-
-{\bf Научный руководитель}\\
-А. С.\,Цветков \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
+{\bf Reviewer}\\
+Z. M.\,Malkin \\  % Есть такое правило - если нет никаких конкретных причин так не делать, то инициалы указываются перед фамилией, а не после. Исключения - тексты вроде милицейского протокола или списки с сортировкой по фамилиям в алфавитном порядке
 }
-
 
 \vfill % Лучше так - то, что ниже, окажется сдвинутым настолько низко, насколько возможно.
 
@@ -262,7 +259,7 @@ HEALPix карта имеет $N_{pix}=12N_{side}^2$ ячеек одинаков
 %\subsubsection{Положения ячеек}
 Положения на сфере определяются с помощью $z \equiv \cos\theta$ и $\phi$, где $\theta \in \left[0,\pi\right]$ -- полярное расстояние, измеряемое от северного полюса, а $\phi \in\left[0,2\pi\right]$ -- долгота в радианах, отсчитывающаяся на восток.
 
-Положения центров ячеек вычисляются следующим образом \cite{healp1}:
+Положения центров ячеек вычисляются следующим образом \citep{2005ApJ...622..759G}:
 
 $p$ -- номер площадки\\
 Для северной полярной шапки:\\
@@ -460,8 +457,14 @@ $	-4,857	\pm	0,983	$&$	3,747	\pm	0,851$\\
 \caption*{Сравнение Gaia DR1 и Gaia DR2}
 \end{figure}
 \newpage
-\bibliographystyle{plainnat}
-\bibliography{вкр.bib}
+%\bibliographystyle{plainnat}
+\def\apj{{ApJ}}                 % Astrophysical Journal
+
+\let\astap=\aap
+\let\apjlett=\apjl
+\let\apjsupp=\apjs
+\let\applopt=\ao
+
 %\begin{thebibliography}{99}
 %\bibitem{gaiasite}ESA Science \& Technology: Gaia \url{http://sci.esa.int/gaia/}
 %\bibitem{healp1}K.\,M.\,Gorski, E.\,Hivon, A.\,J.\,Banday, B.\,D.\,Wandelt, F.\,K.\,Hansen, M.\,Reinecke, M.\,Bartelman: HEALPix -- a Framework for High Resolution Discretization, and Fast Analysis of Data Distributed on the Sphere \url{https://arxiv.org/abs/astro-ph/0409513}
@@ -470,5 +473,8 @@ $	-4,857	\pm	0,983	$&$	3,747	\pm	0,851$\\
 %\bibitem{dumont}du Mont\,B.\,A, 1977, Astron. Astrophys., 61, N1, pp. 127-132 (1977)
 
 %\end{thebibliography}
+\nocite{gaiasite}
+\bibliographystyle{unsrtnat}
+\bibliography{vkr}
 
 \end{document}
