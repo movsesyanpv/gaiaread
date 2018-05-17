@@ -50,3 +50,4 @@ buildwsl/CMakeFiles/feature_tests.bin
 *.gz(busy)
 /*.gz
 /*.bbl
+/*.blg
