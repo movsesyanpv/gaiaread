@@ -41,7 +41,7 @@ plot "100.dat" u 1:14:15 w yerr pt 7 ps 2 t "M13+" ,\
 	 '' using 1:16 w lines lt rgb "blue" lw 3 notitle,\
 	 "100.dat" u 1:18:19 w yerr pt 7 ps 2 lc rgb "black" t "M12+" ,\
 	 '' using 1:18 w lines lt rgb "black" lw 3 notitle,\
-	 "100.dat" u 1:20:21 w yerr pt 7 ps 2 t "M11*" ,\
-	 '' using 1:20 w lines ls 4 lw 3 notitle,\
-	 "100.dat" u 1:22:23 w yerr pt 7 ps 2 t "X",\
-	 '' using 1:22 w lines ls 5 lw 3 notitle
+	 "100.dat" u 1:20:21 w yerr pt 7 ps 2 lc rgb "dark-violet" t "M11*" ,\
+	 '' using 1:20 w lines lt rgb "dark-violet" lw 3 notitle,\
+	 "100.dat" u 1:22:23 w yerr pt 7 ps 2 lc rgb "dark-olivegreen" t "X",\
+	 '' using 1:22 w lines lt rgb "dark-olivegreen" lw 3 notitle
