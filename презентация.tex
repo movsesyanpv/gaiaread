@@ -136,33 +136,33 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Общие сведения о Gaia}
-\center\begin{tabular}{|c|c|c|}
-\hline
-\multicolumn{3}{|c|}{Ошибка параллакса}\\
-\hline
-Спектральный класс & Видимая звездная величина & $\sigma(\pi)$, $\mu as$\\
-\hline
-\raisebox{-4ex}[0cm][0cm]{B2V} &<10 &<7\\
-\cline{2-3}
-& 15 & <25\\
-\cline{2-3}
-& 20 & <300\\
-\hline
-\raisebox{-4ex}[0cm][0cm]{G2V} &<10 &<7\\
-\cline{2-3}
-& 15 & <24\\
-\cline{2-3}
-&20 & <300\\
-\hline
-\raisebox{-4ex}[0cm][0cm]{M6V} &<10 &<7\\
-\cline{2-3}
-& 15 & <12\\
-\cline{2-3}
-&20 & <100\\
-\hline
-\end{tabular}\\
-\end{frame}
+%\begin{frame}{Общие сведения о Gaia}
+%\center\begin{tabular}{|c|c|c|}
+%\hline
+%\multicolumn{3}{|c|}{Ошибка параллакса}\\
+%\hline
+%Спектральный класс & Видимая звездная величина & $\sigma(\pi)$, $\mu as$\\
+%\hline
+%\raisebox{-4ex}[0cm][0cm]{B2V} &<10 &<7\\
+%\cline{2-3}
+%& 15 & <25\\
+%\cline{2-3}
+%& 20 & <300\\
+%\hline
+%\raisebox{-4ex}[0cm][0cm]{G2V} &<10 &<7\\
+%\cline{2-3}
+%& 15 & <24\\
+%\cline{2-3}
+%&20 & <300\\
+%\hline
+%\raisebox{-4ex}[0cm][0cm]{M6V} &<10 &<7\\
+%\cline{2-3}
+%& 15 & <12\\
+%\cline{2-3}
+%&20 & <100\\
+%\hline
+%\end{tabular}\\
+%\end{frame}
 
 \subsection{TGAS: общие сведения}
 \begin{frame}{TGAS: общие сведения}
@@ -189,28 +189,28 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Формулы HEALPix}
-$p$ -- номер площадки\\
-Для северной полярной шапки ($\left|\cos\theta\right|>\frac{2}{3}$):\\
-$p_h=\frac{p+1}{2}$\\
-$1\le i<N_{side}$ -- индекс кольца\\
-$1\le j<4i$ -- индекс ячейки внутри кольца\\
-$$i=\left\lfloor\sqrt{p_h-\sqrt{\left\lfloor p_h\right\rfloor}}\right\rfloor+1$$
-$$j=p+1-2i\left(i-1\right)$$
-$$z=1-\frac{i^2}{3N_{side}^2}$$
-$$\phi=\frac{\pi}{2i}\left(j-0.5\right)$$\\
-\end{frame}
+%\begin{frame}{Формулы HEALPix}
+%$p$ -- номер площадки\\
+%Для северной полярной шапки ($\left|\cos\theta\right|>\frac{2}{3}$):\\
+%$p_h=\frac{p+1}{2}$\\
+%$1\le i<N_{side}$ -- индекс кольца\\
+%$1\le j<4i$ -- индекс ячейки внутри кольца\\
+%$$i=\left\lfloor\sqrt{p_h-\sqrt{\left\lfloor p_h\right\rfloor}}\right\rfloor+1$$
+%$$j=p+1-2i\left(i-1\right)$$
+%$$z=1-\frac{i^2}{3N_{side}^2}$$
+%$$\phi=\frac{\pi}{2i}\left(j-0.5\right)$$\\
+%\end{frame}
 
-\begin{frame}
-Для северного экваториального пояса ($\left|\cos\theta\right|<\frac{2}{3}$):\\
-$p'=p-2N_{side}\left(N_{side}-1\right)$\\
-$N_{side}\le i\le 2N_{side}$\\
-$1\le j\le 4N_{side}$
-$$i=\left\lfloor\frac{p'}{4N_{side}}\right\rfloor + N_{side}$$
-$$j=(p' \mod 4N_{side}) +1$$
-$$z=\frac{4}{3}-\frac{2i}{3N_{side}}$$
-$$\phi=\frac{\pi}{2N_{side}}\left(j-\frac{\left(i-N_{side}+1\right)\mod 2}{2}\right)$$
-\end{frame}
+%\begin{frame}
+%Для северного экваториального пояса ($\left|\cos\theta\right|<\frac{2}{3}$):\\
+%$p'=p-2N_{side}\left(N_{side}-1\right)$\\
+%N_{side}\le i\le 2N_{side}$\\
+%1\le j\le 4N_{side}$
+%$i=\left\lfloor\frac{p'}{4N_{side}}\right\rfloor + N_{side}$$
+%$j=(p' \mod 4N_{side}) +1$$
+%$z=\frac{4}{3}-\frac{2i}{3N_{side}}$$
+%$\phi=\frac{\pi}{2N_{side}}\left(j-\frac{\left(i-N_{side}+1\right)\mod 2}{2}\right)$$
+%\end{frame}
 
 \begin{frame}{Пример пикселизации}
 \includegraphics[width=1\linewidth]{healpexample.jpg}
@@ -225,14 +225,14 @@ V=V_0+\Omega\times r+M^+\times r
 $V_0$ -- скорость поступательного движения Солнца\\ $\Omega$ -- угловая скорость твердотельного вращения звездной системы \\$M^+$ -- симметричный тензор деформации поля скоростей
 \end{frame}
 
-\begin{frame}{Описание параметров модели}
-\begin{itemize}
-\item $U$, $V$, $W$ -- компоненты вектора скорости поступательного движения Солнца ($V_0$).
-\item $\omega_1$, $\omega_2$, $\omega_3$ -- компоненты $\Omega$.
-\item $M^+_{11}$, $M^+_{22}$, $M^+_{33}$ -- параметры тензора деформации, характеризующие растяжение поля вдоль главных галактических скоростей.
-\item $M^+_{12}$, $M^+_{13}$, $M^+_{23}$ -- параметры тензора деформации, характеризующие деформацию поля в основной и двух перпендикулярных ей плоскостях.\\
-\end{itemize}
-\end{frame}
+%\begin{frame}{Описание параметров модели}
+%\begin{itemize}
+%\item $U$, $V$, $W$ -- компоненты вектора скорости поступательного движения Солнца ($V_0$).
+%\item $\omega_1$, $\omega_2$, $\omega_3$ -- компоненты $\Omega$.
+%\item $M^+_{11}$, $M^+_{22}$, $M^+_{33}$ -- параметры тензора деформации, характеризующие растяжение поля вдоль главных галактических скоростей.
+%\item $M^+_{12}$, $M^+_{13}$, $M^+_{23}$ -- параметры тензора деформации, характеризующие деформацию поля в основной и двух перпендикулярных ей плоскостях.\\
+%\end{itemize}
+%\end{frame}
 
 \begin{frame}{Уравнения модели}
 $M_{11}^*=M_{11}^+-M_{22}^+$; $X=M_{33}^+-0.5\left(M_{11}^++M_{22}^+\right)$
